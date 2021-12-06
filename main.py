@@ -29,14 +29,14 @@ class Game:
         self.ui.show()
         self.ui.show_coins(self.coins_amount)
         self.ui.show_life(self.life)
-        self.ui.show_stat_turret(len(self.level.turet_sprites.sprites()))
-
+        self.ui.show_turret_amount(len(self.level.turret_sprites.sprites()))
 
 
 # Setup level
 pygame.init()
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Tower Defence")
+# pygame.mouse.set_visible(False)
 clock = pygame.time.Clock()
 game = Game()
 

@@ -5,7 +5,7 @@ class Tile(pygame.sprite.Sprite):
     def __init__(self, size, x, y):
         """ 
         Constructor. 
-        
+
         Args:
             size (int): Size of the tile
             x (int): x position
@@ -16,8 +16,19 @@ class Tile(pygame.sprite.Sprite):
         self.size = size
         self.pos = (x, y)
         self.image = pygame.Surface((size, size))
-        self.image.fill("purple")
+        # self.image.fill("purple")
         self.rect = self.image.get_rect(topleft=(x, y))
+
+    def update(self):
+        pass
+
+
+class StaticTile(Tile):
+    def __init__(self, size, x, y, surface):
+        super().__init__(size, x, y)
+        self.image = surface
+        self.build_zone = pygame.Rect(
+            x, y, size, size)
 
 
 class Checkpoint(Tile):

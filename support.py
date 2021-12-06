@@ -4,6 +4,24 @@ from csv import reader
 from settings import tile_size
 
 
+def import_folder(path, is_turret, turret_type=None):
+    surface_list = []
+
+    if is_turret:
+        temp_path = path + '/01/' + turret_type + '/'
+    else:
+        temp_path = path + '/'
+
+    for _, __, image_files in walk(temp_path):
+        for image in image_files:
+            full_path = temp_path + image
+            image_surf = pygame.transform.scale(
+                pygame.image.load(full_path).convert_alpha(), (64, 64))
+            surface_list.append(image_surf)
+
+    return surface_list
+
+
 def import_csv_layout(path):
     terrain_map = []
 
@@ -12,3 +30,22 @@ def import_csv_layout(path):
         for row in level:
             terrain_map.append(list(row))
         return terrain_map
+
+
+def import_cut_graphics(path):
+    surface = pygame.image.load(path).convert_alpha()
+    tile_num_x = int(surface.get_size()[0] / tile_size)
+    tile_num_y = int(surface.get_size()[1] / tile_size)
+
+    cut_tiles = []
+    for row in range(tile_num_y):
+        for col in range(tile_num_x):
+            x = col * tile_size
+            y = row * tile_size
+            new_surf = pygame.Surface(
+                (tile_size, tile_size), flags=pygame.SRCALPHA)
+            new_surf.blit(surface, (0, 0), pygame.Rect(
+                x, y, tile_size, tile_size))
+            cut_tiles.append(new_surf)
+
+    return cut_tiles
