@@ -1,4 +1,5 @@
 import pygame
+from random import randint
 
 from tiles import *
 from settings import *
@@ -6,7 +7,7 @@ from support import *
 from game_data import levels
 from sbire import Sbire
 from turret import *
-from random import randint
+# from menu import ImageButton
 
 
 class Level:
@@ -104,7 +105,7 @@ class Level:
         self.grid_sprites = []
         for x in range(0, screen_width, tile_size):
             for y in range(0, screen_height, tile_size):
-                grid_tile = pygame.Rect(x, y, tile_size, tile_size)
+                grid_tile = pygame.Rect(x, y + 64, tile_size, tile_size)
                 self.grid_sprites.append(grid_tile)
 
         for tile in self.grid_sprites:
