@@ -13,11 +13,10 @@ class Sbire(pygame.sprite.Sprite):
         self.display_surface = surface
         self.coins_reward = coins_reward
 
-        self.status = 'drive'
+        self.status = 'run'
         self.frame_index = 0
         self.animation_speed = 0.20
-        self.image = pygame.transform.rotate(
-            self.animations[self.status][self.frame_index], -90)
+        self.image = self.animations[self.status][self.frame_index]
         self.rect = self.image.get_rect(center=self.pos)
         self.detection_zone = pygame.Rect(
             self.pos[0] - int(size / 2), self.pos[1] - int(size / 2), size, size)
@@ -36,12 +35,12 @@ class Sbire(pygame.sprite.Sprite):
         self.health_bar.fill("#000000")
 
     def import_sbire_assets(self):
-        sbire_path = 'graphics/tank/'
-        self.animations = {'drive': []}
+        sbire_path = 'graphics/sbire/'
+        self.animations = {'run': []}
 
         for animation in self.animations.keys():
             full_path = sbire_path + animation
-            self.animations[animation] = import_folder(full_path, False)
+            self.animations[animation] = import_folder(full_path, 32)
 
     def animate(self):
         animation = self.animations[self.status]
@@ -50,14 +49,17 @@ class Sbire(pygame.sprite.Sprite):
         if self.frame_index >= len(animation):
             self.frame_index = 0
 
-        self.image = animation[self.frame_index]
+        self.image = pygame.transform.rotate(
+            animation[int(self.frame_index)], -180)
 
-    def rotate(self):
+        # Rotate sbire
         if self.checkpoint_target % 2 == 0:
-            self.image = pygame.transform.rotate(self.image, 90)
+            self.image = pygame.transform.rotate(
+                self.image, 90)
             self.rect = self.image.get_rect(center=self.pos)
         else:
-            self.image = pygame.transform.rotate(self.image, -90)
+            self.image = pygame.transform.rotate(
+                self.image, -90)
             self.rect = self.image.get_rect(center=self.pos)
 
     def draw_health_bar(self, current_health, full):
@@ -77,5 +79,6 @@ class Sbire(pygame.sprite.Sprite):
         self.current_health += amount
 
     def update(self):
+        self.animate()
         self.rect.center = self.pos
         self.draw_health_bar(self.current_health, self.max_health)

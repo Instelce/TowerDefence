@@ -4,16 +4,18 @@ from random import randint
 from tiles import *
 from settings import *
 from support import *
-from game_data import levels
+from game_data import *
 from sbire import Sbire
 from turret import *
-# from menu import ImageButton
 
 
 class Level:
-    def __init__(self, surface, coins_amount, change_coins, change_life):
+    def __init__(self, surface, turret_selected, change_turret_selected, coins_amount, change_coins, change_life):
         super(Level, self).__init__()
         self.display_surface = surface
+        self.turret_selected = turret_selected
+        self.change_turret_selected = change_turret_selected
+        self.turret_data = turrets_data[f"0{self.turret_selected}"]
 
         # Levels data
         self.current_level = 0
@@ -62,16 +64,45 @@ class Level:
     def input(self):
         keys = pygame.key.get_pressed()
         now = pygame.time.get_ticks()
+        pressed_speed = 200
 
+        # Keys
         if keys[pygame.K_SPACE]:
             self.wave_management(self.level_data['wave'])
         elif keys[pygame.K_a] and now - self.last_time >= 500:
             self.last_time = now
             self.create_sbire()
-        elif pygame.mouse.get_pressed() == (1, 0, 0):
-            self.create_turret()
+        elif keys[pygame.K_RIGHT] and now - self.last_time >= pressed_speed and self.turret_selected <= len(turrets_data) - 1:
+            self.last_time = now
+            self.turret_selected += 1
+            self.change_turret_selected(self.turret_selected)
+            self.turret_data = turrets_data[f"0{self.turret_selected}"]
+        elif keys[pygame.K_LEFT] and now - self.last_time >= pressed_speed and self.turret_selected > 1:
+            self.last_time = now
+            self.turret_selected -= 1
+            self.change_turret_selected(self.turret_selected)
+            self.turret_data = turrets_data[f"0{self.turret_selected}"]
+
+        # Mouse
+        if pygame.mouse.get_pressed() == (1, 0, 0):
+            self.create_turret(self.turret_data['price'],
+                               self.turret_data['damage'],
+                               self.turret_data['range_size'],
+                               self.turret_data['range_ratio'],
+                               self.turret_data['idle'],
+                               self.turret_data['fire'],
+                               self.turret_data['bullet_path'])
         elif pygame.mouse.get_pressed() == (0, 0, 1):
             self.delete_turret()
+        elif pygame.mouse.get_pressed() == (0, 1, 0) and now - self.last_time >= pressed_speed:
+            self.last_time = now
+            if self.turret_selected > len(turrets_data) - 1:
+                self.turret_selected = 1
+            else:
+                self.turret_selected += 1
+            self.change_turret_selected(self.turret_selected)
+            self.turret_data = turrets_data[f"0{self.turret_selected}"]
+        print(self.turret_selected)
 
     def create_tile_group(self, layout, type):
         sprite_group = pygame.sprite.Group()
@@ -179,7 +210,6 @@ class Level:
             # Check if the sbire touch a checkpoint
             if self.all_target_checkpoint[index].detection_zone.collidepoint(sbire.pos) and sbire.checkpoint_target < len(self.points) - 2:
                 sbire.checkpoint_target += 1
-                sbire.rotate()
 
             # Check if the sbire is not on the screen or if the sbire was dead
             if sbire.pos[0] > screen_width:
@@ -204,14 +234,14 @@ class Level:
         pygame.draw.lines(self.display_surface,
                           'purple', False, self.points, 6)
 
-    def create_turret(self):
+    def create_turret(self, price, damage, range_size, range_ratio, idle_path, fire_path, bullet_path):
         if self.coins_amount > 0:
             if self.tile_is_build:
                 self.change_coins(0)
             else:
                 pos = self.grid_tile_selected.center
                 turret = Turret(64, pos, self.display_surface,
-                                20, 3 * tile_size, 1)
+                                price, damage, range_size, range_ratio, idle_path, fire_path, bullet_path)
 
                 self.coins_amount -= turret.price
                 self.change_coins(-turret.price)
@@ -228,8 +258,8 @@ class Level:
             if len(self.turret_sprites.sprites()) == 0:
                 self.tile_is_build = False
 
-    def create_bullet(self, turret, sbire_target):
-        bullet = Bullet(turret, sbire_target)
+    def create_bullet(self, turret, sbire_target, image_path):
+        bullet = Bullet(turret, sbire_target, image_path)
         self.bullet_sprites.add(bullet)
 
     def turret_detection(self):
@@ -240,7 +270,7 @@ class Level:
 
                     if now - self.bullet_last_time >= turret.shoot_speed:
                         self.bullet_last_time = now
-                        self.create_bullet(turret, sbire)
+                        self.create_bullet(turret, sbire, turret.bullet_path)
 
                     turret.sbire_target = sbire
                     turret.is_shooting = True
@@ -266,7 +296,7 @@ class Level:
             if pygame.sprite.spritecollide(bullet, self.sbire_sprites, False):
                 self.all_bullet_direction.remove(bullet_direction)
 
-                bullet.sbire_target.take_damage(-5)
+                bullet.sbire_target.take_damage(-bullet.turret.damage)
                 bullet.kill()
 
     def run(self):

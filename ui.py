@@ -24,7 +24,7 @@ class UI:
         self.topbar_padding = 32
         self.topbar_size = (screen_width, 64)
         self.topbar_surf = pygame.Surface(self.topbar_size)
-        self.topbar_surf.fill("#2A2A2A")
+        self.topbar_surf.fill("black")
 
         # Resume window
         self.pause = False
@@ -88,12 +88,31 @@ class UI:
     def resume_game(self):
         self.pause = False
 
-    def turret_panel(self):
-        pass
+    def draw_turret_panel(self, change_turret_selected):
+        for index, turret_type in enumerate(self.turrets_data):
+            x_pos = ((screen_width / 2) -
+                     (len(self.turrets_data) * 80) / 2) + index * 80
+            y_pos = screen_height - 160
+            selector_surf = pygame.Rect(x_pos, y_pos + 48, 80, 80)
+            turret_button = Button(self.display_surface,
+                                   self.no_callback,
+                                   '',
+                                   80,
+                                   128,
+                                   (x_pos, y_pos),
+                                   self.turrets_data[turret_type]['card_normal'],
+                                   self.turrets_data[turret_type]['card_hover'])
+            turret_button.draw(turret_button.pos)
+            if self.turrets_data[turret_type]['is_selected']:
+                pygame.draw.rect(self.display_surface,
+                                 "white", selector_surf, 2)
+
+    def no_callback(self):
+        return None
 
     def show(self):
         self.display_surface.blit(self.topbar_surf, (0, 0))
-        self.topbar()
+        # self.topbar()
 
         # self.display_surface.blit(
         # self.turret_panel_surf, self.turret_panel_rect)

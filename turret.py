@@ -2,18 +2,19 @@ import pygame
 import math
 from random import randint
 
+from settings import *
 from support import import_folder
+from menu import Button
 
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, turret, sbire_target):
+    def __init__(self, turret, sbire_target, image_path):
         super().__init__()
         self.turret = turret
         self.sbire_target = sbire_target
         self.pos = turret.pos
 
-        self.image = pygame.Surface((5, 5))
-        self.image.fill("blue")
+        self.image = pygame.image.load(image_path).convert_alpha()
         self.rect = self.image.get_rect(center=self.pos)
 
         self.speed = 15
@@ -23,7 +24,7 @@ class Bullet(pygame.sprite.Sprite):
 
 
 class Turret(pygame.sprite.Sprite):
-    def __init__(self, size, pos, surface, price, range_size, range_ratio):
+    def __init__(self, size, pos, surface, price, damage, range_size, range_ratio, idle_path, fire_path, bullet_path):
         """
         Constructor.
 
@@ -34,6 +35,11 @@ class Turret(pygame.sprite.Sprite):
 
         """
         super().__init__()
+        self.animations_path = {
+            'idle': idle_path,
+            'fire': fire_path,
+        }
+
         self.import_turret_assets()
 
         # Setup
@@ -41,25 +47,21 @@ class Turret(pygame.sprite.Sprite):
         self.size = size
         self.display_surface = surface
         self.price = price
+        self.damage = damage
+        self.bullet_path = bullet_path
 
         # Animations
         self.frame_index = 0
-        self.animation_speed = 0.20
+        self.animation_speed = 0.2
         self.status = 'idle'
 
         # Image and pos
-        self.is_leafy = 0
         self.image = self.animations[self.status][self.frame_index]
         self.rect = self.image.get_rect(center=self.pos)
         self.build_zone = pygame.Rect(
             self.pos[0] - int(size / 2), self.pos[1] - int(size / 2), size, size)
-
-        if self.is_leafy == 0:
-            self.wall = pygame.image.load(
-                'graphics/turret/blue/towers_wall.png')
-        elif self.is_leafy == 1:
-            self.wall = pygame.image.load(
-                'graphics/turret/blue/towers_wall_leafy.png')
+        self.wall = pygame.image.load(
+            'graphics/turret/turret_wall.png')
 
         # Shoot
         self.shooting_range = pygame.Rect(
@@ -68,13 +70,16 @@ class Turret(pygame.sprite.Sprite):
         self.sbire_target = None
         self.shoot_speed = 400
 
+        # UI
+        self.is_ui_show = False
+
     def import_turret_assets(self):
-        turret_path = 'graphics/turret/blue/'
         self.animations = {'idle': [], 'fire': []}
 
         for animation in self.animations.keys():
-            full_path = turret_path + animation
-            self.animations[animation] = import_folder(full_path, True, 'mk2')
+            full_path = self.animations_path[animation]
+            print(full_path)
+            self.animations[animation] = import_folder(full_path)
 
     def animate(self):
         animation = self.animations[self.status]
@@ -106,10 +111,41 @@ class Turret(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.image, 0)
         self.rect = self.image.get_rect(center=self.pos)
 
+    def show_turret_ui(self):
+        width = 3 * tile_size
+        height = 2 * tile_size
+        keys = pygame.key.get_pressed()
+        mouse_pos = pygame.mouse.get_pos()
+
+        # Container
+        container_surf = pygame.image.load(
+            'graphics/turret/ui/frame.png').convert_alpha()
+        container_rect = container_surf.get_rect(
+            center=(self.rect.x + 32, self.rect.y - 74))
+
+        # Upgrade button
+        upgrade_button = Button(
+            container_surf, self.upgrade, '', 160, 32, (16, height - (32 + 16)), 'graphics/turret/ui/upgrade_button/upgrade_button_normal.png', 'graphics/turret/ui/upgrade_button/upgrade_button_hover.png')
+        upgrade_button.draw(upgrade_button.pos)
+
+        # If mouse collide turret
+        if self.rect.collidepoint(mouse_pos):
+            if pygame.mouse.get_pressed()[0]:
+                self.is_ui_show = True
+        if keys[pygame.K_ESCAPE]:
+            self.is_ui_show = False
+
+        if self.is_ui_show:
+            self.display_surface.blit(container_surf, container_rect)
+
+    def upgrade(self):
+        pass
+
     def update(self):
         self.animate()
         self.get_status()
         self.rotate()
+        self.show_turret_ui()
 
         self.display_surface.blit(
             self.wall, self.wall.get_rect(center=self.pos))

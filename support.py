@@ -4,19 +4,14 @@ from csv import reader
 from settings import tile_size
 
 
-def import_folder(path, is_turret, turret_type=None):
+def import_folder(path, tile_size=64):
     surface_list = []
 
-    if is_turret:
-        temp_path = path + '/01/' + turret_type + '/'
-    else:
-        temp_path = path + '/'
-
-    for _, __, image_files in walk(temp_path):
+    for _, __, image_files in walk(path):
         for image in image_files:
-            full_path = temp_path + image
+            full_path = path + '/' + image
             image_surf = pygame.transform.scale(
-                pygame.image.load(full_path).convert_alpha(), (64, 64))
+                pygame.image.load(full_path).convert_alpha(), (tile_size, tile_size))
             surface_list.append(image_surf)
 
     return surface_list

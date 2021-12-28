@@ -6,27 +6,29 @@ from level import Level
 from menu import Menu, Button
 from ui import UI
 from debug import debug
+from game_data import turrets_data
 
 
 class Game:
     def __init__(self):
         self.coins_amount = 100
         self.life = 20
+        self.turret_selected = 1
 
         self.status = 'mendu'
-        # self.start_menu = Menu(screen,
-        #                        "Tower Defence",
-        #                        [
-        #                            Button(screen,
-        #                                   self.create_level, "Start", 200, 50),
-        #                            Button(screen,
-        #                                   self.create_level, "Settings", 200, 50),
-        #                            Button(screen,
-        #                                   self.quit_game, "Quit", 200, 50)
-        #                        ],
-        #                        "graphics/ui/start_menu_banner.png",)
+        self.start_menu = Menu(screen,
+                               "Tower Defence",
+                               [
+                                   Button(screen,
+                                          self.create_level, "Start", 200, 50),
+                                   Button(screen,
+                                          self.create_level, "Settings", 200, 50),
+                                   Button(screen,
+                                          self.quit_game, "Quit", 200, 50)
+                               ],
+                               "graphics/ui/start_menu_banner.png",)
 
-        self.level = Level(screen, self.coins_amount,
+        self.level = Level(screen, self.turret_selected, self.change_turret_selected, self.coins_amount,
                            self.change_coins, self.change_life)
 
         # User interface
@@ -43,6 +45,12 @@ class Game:
     def change_life(self, amount):
         self.life += amount
 
+    def change_turret_selected(self, choice):
+        self.turret_selected = choice
+        for turret_type in turrets_data:
+            turrets_data[turret_type]['is_selected'] = False
+        turrets_data[f"0{self.turret_selected}"]['is_selected'] = True
+
     def create_menu(self):
         self.start_menu = Menu(screen,
                                "Tower Defence",
@@ -58,7 +66,7 @@ class Game:
         self.status = 'menu'
 
     def create_level(self):
-        self.level = Level(screen, self.coins_amount,
+        self.level = Level(screen, self.turret_selected, self.coins_amount,
                            self.change_coins, self.change_life)
         self.status = 'level'
 
@@ -70,13 +78,14 @@ class Game:
             self.ui.show()
             self.ui.show_coins(self.coins_amount)
             self.ui.show_life(self.life)
+            self.ui.draw_turret_panel(self.change_turret_selected)
 
 
 # Setup level
 pygame.init()
-screen = pygame.display.set_mode((screen_width, screen_height))
+screen = pygame.display.set_mode(
+    (screen_width, screen_height), pygame.SCALED + pygame.RESIZABLE)
 pygame.display.set_caption("Tower Defence")
-# pygame.mouse.set_visible(False)
 clock = pygame.time.Clock()
 game = Game()
 

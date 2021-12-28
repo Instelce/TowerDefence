@@ -35,7 +35,7 @@ class Menu:
             self.background = None
 
     def draw_title(self):
-        title_font = pygame.font.Font(gamer_font_path, 80)
+        title_font = get_font(80)
         title_surf = title_font.render(self.title, True, "#FFFFFF")
         title_rect = title_surf.get_rect(
             center=(screen_width / 2, screen_height / 2 - 100))
@@ -69,13 +69,19 @@ class Menu:
 
 
 class Button:
-    def __init__(self, surface, callback, text, width, height, pos=None):
+    def __init__(self, surface, callback, text, width, height, pos=None, normal_image='graphics/button/button_normal.png', hover_image='graphics/button/button_hover.png'):
         super().__init__()
         self.width = width
         self.height = height
         self.display_surface = surface
         self.text = text
         self.callback = callback
+        self.normal_image = normal_image
+        self.hover_image = hover_image
+
+        # Font and image
+        self.font = get_font(30)
+        self.image = pygame.image.load(self.normal_image).convert_alpha()
 
         # If the button is on a menu or not
         if pos != None:
@@ -84,13 +90,7 @@ class Button:
             self.pos = ((screen_width / 2) - int(width /
                                                  2), (screen_height / 2) - int(height / 2))
 
-        # Font and colors
-        self.font = pygame.font.Font(gamer_font_path, 30)
-        self.color = "#30394F"
-        self.hover_color = "#404C69"
-
-        # Rect
-        self.rect = pygame.Rect(self.pos, (width, height))
+        self.rect = self.image.get_rect(topleft=self.pos)
 
         # Text
         self.text_surf = self.font.render(text, True, "#FFFFFF")
@@ -100,21 +100,34 @@ class Button:
         mouse_pos = pygame.mouse.get_pos()
         if self.rect.collidepoint(mouse_pos):
             # Change color of button on hover
-            pygame.draw.rect(self.display_surface, self.hover_color, self.rect)
+            self.image = pygame.image.load(self.hover_image).convert_alpha()
+            self.display_surface.blit(self.image, self.rect)
             self.display_surface.blit(self.text_surf, self.text_rect)
 
             if pygame.mouse.get_pressed()[0]:
                 print('CLICK')
                 print(self.text)
                 self.callback()
+        else:
+            self.image = pygame.image.load(self.normal_image).convert_alpha()
+            self.display_surface.blit(self.image, self.rect)
+            self.display_surface.blit(self.text_surf, self.text_rect)
+
+    def check_alignement(self, y_alignement):
+        if y_alignement == 'top':
+            y = 50 + text_surf.get_size()[1]
+        elif y_alignement == 'middle':
+            y = screen_height / 2
+        elif y_alignement == 'bottom':
+            y = (screen_height - 50) - text_surf.get_size()[1]
 
     def draw(self, pos):
         # Update rect end text
-        self.rect = pygame.Rect(pos, (self.width, self.height))
+        self.rect = self.image.get_rect(topleft=self.pos)
         self.text_rect = self.text_surf.get_rect(center=self.rect.center)
 
         # Draw rext and text
-        pygame.draw.rect(self.display_surface, self.color, self.rect)
+        self.display_surface.blit(self.image, self.rect)
         self.display_surface.blit(self.text_surf, self.text_rect)
 
         self.check_click()
