@@ -54,6 +54,7 @@ class Level:
         self.last_time = pygame.time.get_ticks()
 
         # Turret setup
+        self.can_build = True
         self.tile_is_build = False
         self.turret_sprites = pygame.sprite.Group()
 
@@ -178,10 +179,41 @@ class Level:
         print(
             f"Sbire count: {sbire_index} / {sbire_count} for wave {wave_index}")
 
+    # Create entities functions -----------------------------
     def create_sbire(self):
         sbire = Sbire(self.display_surface, 32, self.points[0], 15, 5)
         self.sbire_sprites.add(sbire)
 
+    def create_turret(self, price, damage, range_size, range_ratio, idle_path, fire_path, bullet_path):
+        if self.coins_amount > 0:
+            if self.tile_is_build:
+                self.change_coins(0)
+            else:
+                if self.can_build:
+                    pos = self.grid_tile_selected.center
+                    turret = Turret(64, pos, self.display_surface,
+                                    price, damage, range_size, range_ratio, idle_path, fire_path, bullet_path)
+
+                    self.coins_amount -= turret.price
+                    self.change_coins(-turret.price)
+
+                    self.turret_sprites.add(turret)
+
+    def delete_turret(self):
+        pos = self.grid_tile_selected.center
+        for turret in self.turret_sprites:
+            if turret.build_zone.collidepoint(pos):
+                self.coins_amount += turret.price
+                self.change_coins(turret.price)
+                turret.kill()
+            if len(self.turret_sprites.sprites()) == 0:
+                self.tile_is_build = False
+
+    def create_bullet(self, turret, sbire_target, image_path):
+        bullet = Bullet(turret, sbire_target, image_path)
+        self.bullet_sprites.add(bullet)
+
+    # Movement functions -----------------------------
     def get_sprite_movement(self, start_pos, end_pos):
         start = pygame.math.Vector2(start_pos)
         end = pygame.math.Vector2(end_pos)
@@ -230,54 +262,6 @@ class Level:
 
                 sbire.kill()
 
-    def draw_paths(self):
-        pygame.draw.lines(self.display_surface,
-                          'purple', False, self.points, 6)
-
-    def create_turret(self, price, damage, range_size, range_ratio, idle_path, fire_path, bullet_path):
-        if self.coins_amount > 0:
-            if self.tile_is_build:
-                self.change_coins(0)
-            else:
-                pos = self.grid_tile_selected.center
-                turret = Turret(64, pos, self.display_surface,
-                                price, damage, range_size, range_ratio, idle_path, fire_path, bullet_path)
-
-                self.coins_amount -= turret.price
-                self.change_coins(-turret.price)
-
-                self.turret_sprites.add(turret)
-
-    def delete_turret(self):
-        pos = self.grid_tile_selected.center
-        for turret in self.turret_sprites:
-            if turret.build_zone.collidepoint(pos):
-                self.coins_amount += turret.price
-                self.change_coins(turret.price)
-                turret.kill()
-            if len(self.turret_sprites.sprites()) == 0:
-                self.tile_is_build = False
-
-    def create_bullet(self, turret, sbire_target, image_path):
-        bullet = Bullet(turret, sbire_target, image_path)
-        self.bullet_sprites.add(bullet)
-
-    def turret_detection(self):
-        for turret in self.turret_sprites:
-            for sbire in self.sbire_sprites:
-                if turret.shooting_range.collidepoint((sbire.pos[0], sbire.pos[1])):
-                    now = pygame.time.get_ticks()
-
-                    if now - self.bullet_last_time >= turret.shoot_speed:
-                        self.bullet_last_time = now
-                        self.create_bullet(turret, sbire, turret.bullet_path)
-
-                    turret.sbire_target = sbire
-                    turret.is_shooting = True
-                else:
-                    turret.sbire_target = None
-                    turret.is_shooting = False
-
     def apply_bullet_movement(self):
         self.all_bullet_direction = []
 
@@ -298,6 +282,26 @@ class Level:
 
                 bullet.sbire_target.take_damage(-bullet.turret.damage)
                 bullet.kill()
+
+    def draw_paths(self):
+        pygame.draw.lines(self.display_surface,
+                          'purple', False, self.points, 6)
+
+    def turret_detection(self):
+        for turret in self.turret_sprites:
+            for sbire in self.sbire_sprites:
+                if turret.shooting_range.collidepoint((sbire.pos[0], sbire.pos[1])):
+                    now = pygame.time.get_ticks()
+
+                    if now - self.bullet_last_time >= turret.shoot_speed:
+                        self.bullet_last_time = now
+                        self.create_bullet(turret, sbire, turret.bullet_path)
+
+                    turret.sbire_target = sbire
+                    turret.is_shooting = True
+                else:
+                    turret.sbire_target = None
+                    turret.is_shooting = False
 
     def run(self):
         self.input()
@@ -329,3 +333,10 @@ class Level:
         # Bullet
         self.bullet_sprites.update()
         self.bullet_sprites.draw(self.display_surface)
+
+        # Build
+        for turret in self.turret_sprites:
+            if turret.can_build:
+                self.can_build = True
+            if not turret.can_build:
+                self.can_build = False
