@@ -27,14 +27,35 @@ turrets_data = {
         'card_normal': 'graphics/turret/cards/normal/card_normal_0.png',
         'card_hover': 'graphics/turret/cards/hover/card_hover_0.png',
 
-        'damage': 5,
-        'range_size': tile_size * 5,
-        'range_ratio': 2,
         'price': 20,
+
+        'levels_stats': {
+            1: {
+                'damage': 5,
+                'range_size': tile_size * 5,
+                'range_ratio': 2,
+            },
+            2: {
+                'damage': 8,
+                'range_size': tile_size * 5,
+                'range_ratio': 2,
+            },
+            3: {
+                'damage': 8,
+                'range_size': tile_size * 7,
+                'range_ratio': 3,
+            },
+        },
+
+        'levels_price': {
+            2: 25,
+            3: 30
+        },
 
         'fire': 'graphics/turret/fire/01/',
         'idle': 'graphics/turret/idle/01/',
         'bullet_path': 'graphics/turret/bullet/01/bullet_01.png',
+
     },
     '02': {
         'category': 2,
@@ -47,6 +68,29 @@ turrets_data = {
         'range_ratio': 1,
         'price': 25,
 
+        'levels_stats': {
+            1: {
+                'damage': 10,
+                'range_size': tile_size * 3,
+                'range_ratio': 1,
+            },
+            2: {
+                'damage': 15,
+                'range_size': tile_size * 3,
+                'range_ratio': 1,
+            },
+            3: {
+                'damage': 20,
+                'range_size': tile_size * 5,
+                'range_ratio': 2,
+            },
+        },
+
+        'levels_price': {
+            2: 30,
+            3: 40
+        },
+
         'fire': 'graphics/turret/fire/02/',
         'idle': 'graphics/turret/idle/02/',
         'bullet_path': 'graphics/turret/bullet/02/bullet_02.png',
@@ -57,10 +101,30 @@ turrets_data = {
         'card_normal': 'graphics/turret/cards/normal/card_normal_2.png',
         'card_hover': 'graphics/turret/cards/hover/card_hover_2.png',
 
-        'damage': 10,
-        'range_size': tile_size * 7,
-        'range_ratio': 3,
         'price': 30,
+
+        'levels_stats': {
+            1: {
+                'damage': 10,
+                'range_size': tile_size * 7,
+                'range_ratio': 3,
+            },
+            2: {
+                'damage': 12,
+                'range_size': tile_size * 7,
+                'range_ratio': 3,
+            },
+            3: {
+                'damage': 15,
+                'range_size': tile_size * 7,
+                'range_ratio': 3,
+            },
+        },
+
+        'levels_price': {
+            2: 35,
+            3: 40
+        },
 
         'fire': 'graphics/turret/fire/03/',
         'idle': 'graphics/turret/idle/03/',

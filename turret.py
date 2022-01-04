@@ -50,9 +50,13 @@ class Turret(pygame.sprite.Sprite):
         self.price = price
         self.damage = damage
         self.bullet_path = bullet_path
+        self.range_size = range_size
+        self.range_ratio = range_ratio
 
         # Level
-        self.level = 3
+        self.level = 1
+        self.level_max = 3
+        self.upgrade_signal = False
         self.level_image = pygame.image.load(
             turrets_levels[self.level]).convert_alpha()
 
@@ -64,6 +68,7 @@ class Turret(pygame.sprite.Sprite):
         # Image and pos
         self.image = self.animations[self.status][self.frame_index]
         self.rect = self.image.get_rect(center=self.pos)
+
         self.build_zone = pygame.Rect(
             self.pos[0] - int(size / 2), self.pos[1] - int(size / 2), size, size)
         self.wall = pygame.image.load(
@@ -71,7 +76,7 @@ class Turret(pygame.sprite.Sprite):
 
         # Shoot
         self.shooting_range = pygame.Rect(
-            self.rect.x - int(size * range_ratio), self.rect.y - int(size * range_ratio), range_size, range_size)
+            self.rect.x - int(size * self.range_ratio), self.rect.y - int(size * self.range_ratio), self.range_size, self.range_size)
         self.is_shooting = False
         self.sbire_target = None
         self.shoot_speed = 400
@@ -79,6 +84,8 @@ class Turret(pygame.sprite.Sprite):
         # UI
         self.is_ui_show = False
         self.can_build = True
+
+        self.last_time = pygame.time.get_ticks()
 
     def import_turret_assets(self):
         self.animations = {'idle': [], 'fire': []}
@@ -125,7 +132,12 @@ class Turret(pygame.sprite.Sprite):
         mouse_pos = pygame.mouse.get_pos()
 
         x = self.rect.x + 32
-        y = self.rect.y - 74
+
+        # Check the y position of turret
+        if self.rect.y > int(screen_height / 2):
+            y = self.rect.y - 74
+        elif self.rect.y < int(screen_height / 2):
+            y = self.rect.y + (height + 10)
 
         # Container
         container_surf = pygame.image.load(
@@ -134,13 +146,33 @@ class Turret(pygame.sprite.Sprite):
             center=(x, y))
 
         # Upgrade button
-        upgrade_button = Button(self.display_surface, self.upgrade, '', 160, 32, (x - 80, y + 18),
-                                'graphics/turret/ui/upgrade_button/upgrade_button_normal.png', 'graphics/turret/ui/upgrade_button/upgrade_button_hover.png')
+        upgrade_button = Button(self.display_surface, None, '', 160, 32, (x - 80, y + 18),
+                                'graphics/turret/ui/upgrade_button/upgrade_button_normal.png',
+                                'graphics/turret/ui/upgrade_button/upgrade_button_hover.png')
 
-        # Level info
+        # Level info (level_frame, current_level, next_level)
         level_frame_surf = pygame.image.load(
             'graphics/turret/ui/level_frame.png').convert_alpha()
         level_frame_rect = level_frame_surf.get_rect(center=(x, y - 18))
+
+        current_level_surf = pygame.image.load(
+            turrets_levels[self.level]).convert_alpha()
+        current_level_rect = current_level_surf.get_rect(
+            center=(x - 32, y - 18))
+
+        if self.level == self.level_max:
+            next_level_surf = pygame.image.load(
+                turrets_levels[self.level]).convert_alpha()
+        else:
+            next_level_surf = pygame.image.load(
+                turrets_levels[self.level + 1]).convert_alpha()
+        next_level_rect = next_level_surf.get_rect(
+            center=(x + 32, y - 18))
+
+        # Level max
+        level_max_surf = pygame.image.load(
+            'graphics/turret/ui/level_max.png').convert_alpha()
+        level_max_rect = level_frame_surf.get_rect(topleft=(x - 80, y + 18))
 
         # Cross
         cross_surf = pygame.image.load(
@@ -150,38 +182,60 @@ class Turret(pygame.sprite.Sprite):
 
         # If mouse collide turret
         if self.rect.collidepoint(mouse_pos):
-            if keys[pygame.K_u]:
+            # Shooting range
+            pygame.draw.rect(self.display_surface, "#171717",
+                             self.shooting_range, 2)
+
+            if keys[pygame.K_SPACE]:
                 self.is_ui_show = True
 
         if self.is_ui_show:
+            print('Level >', self.level)
+
+            # Display components
             self.display_surface.blit(container_surf, container_rect)
             self.display_surface.blit(level_frame_surf, level_frame_rect)
+            self.display_surface.blit(current_level_surf, current_level_rect)
+            self.display_surface.blit(next_level_surf, next_level_rect)
+
             upgrade_button.draw(upgrade_button.pos)
+
+            if self.level == self.level_max:
+                self.display_surface.blit(level_max_surf, level_max_rect)
 
             if container_rect.collidepoint(mouse_pos):
                 self.can_build = False
+
+                # Display cross
                 self.display_surface.blit(cross_surf, cross_rect)
 
+                # Cross click
                 if cross_rect.collidepoint(mouse_pos):
-                    if pygame.key.get_pressed()[0]:
+                    if pygame.mouse.get_pressed()[0]:
                         self.is_ui_show = False
-                        print(
-                            "====================================================================")
+                        self.can_build = True
 
-    def upgrade(self):
-        pass
+                # Upgrade button click
+                if upgrade_button.rect.collidepoint(mouse_pos):
+                    if pygame.mouse.get_pressed()[0]:
+                        self.upgrade_signal = True
+                    else:
+                        self.upgrade_signal = False
+            else:
+                self.can_build = True
+
+    def draw_wall(self):
+        self.display_surface.blit(
+            self.wall, self.wall.get_rect(center=self.pos))
 
     def update(self):
         self.animate()
         self.get_status()
-        self.rotate()
         self.show_turret_ui()
 
-        self.display_surface.blit(
-            self.wall, self.wall.get_rect(center=self.pos))
-
-        # self.level_image = pygame.image.load(
-        #     turrets_levels[self.level]).convert_alpha()
+        # Update level image
+        self.level_image = pygame.image.load(
+            turrets_levels[self.level]).convert_alpha()
         self.display_surface.blit(
             self.level_image, self.level_image.get_rect(center=self.pos))
 
@@ -191,6 +245,3 @@ class Turret(pygame.sprite.Sprite):
         #     self.end = pygame.math.Vector2(self.sbire_target.pos)
         #     pygame.draw.line(self.display_surface, "blue",
         #                      self.start, self.end, width=1)
-
-        # Shooting range
-        pygame.draw.rect(self.display_surface, "#171717", self.shooting_range, 2)

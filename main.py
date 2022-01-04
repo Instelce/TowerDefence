@@ -15,7 +15,7 @@ class Game:
         self.life = 5
         self.turret_selected = 1
 
-        self.status = 'menu'
+        self.status = '-menu'
         self.start_menu = Menu(screen,
                                "Tower Defence",
                                [

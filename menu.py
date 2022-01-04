@@ -105,9 +105,9 @@ class Button:
             self.display_surface.blit(self.text_surf, self.text_rect)
 
             if pygame.mouse.get_pressed()[0]:
-                print('CLICK')
-                print(self.text)
-                self.callback()
+                print('CLICK', self.text)
+                if self.callback != None:
+                    self.callback()
         else:
             self.image = pygame.image.load(self.normal_image).convert_alpha()
             self.display_surface.blit(self.image, self.rect)

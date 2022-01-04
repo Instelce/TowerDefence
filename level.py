@@ -69,7 +69,8 @@ class Level:
 
         # Keys
         if keys[pygame.K_SPACE]:
-            self.wave_management(self.level_data['wave'])
+            pass
+            # self.wave_management(self.level_data['wave'])
         elif keys[pygame.K_a] and now - self.last_time >= 500:
             self.last_time = now
             self.create_sbire()
@@ -87,9 +88,9 @@ class Level:
         # Mouse
         if pygame.mouse.get_pressed() == (1, 0, 0):
             self.create_turret(self.turret_data['price'],
-                               self.turret_data['damage'],
-                               self.turret_data['range_size'],
-                               self.turret_data['range_ratio'],
+                               self.turret_data['levels_stats'][1]['damage'],
+                               self.turret_data['levels_stats'][1]['range_size'],
+                               self.turret_data['levels_stats'][1]['range_ratio'],
                                self.turret_data['idle'],
                                self.turret_data['fire'],
                                self.turret_data['bullet_path'])
@@ -158,12 +159,13 @@ class Level:
                     else:
                         self.tile_is_build = False
 
-                if self.tile_is_build:
-                    pygame.draw.rect(self.display_surface,
-                                     "red", tile, border_size)
-                else:
-                    pygame.draw.rect(self.display_surface,
-                                     "white", tile, border_size)
+                if self.can_build:
+                    if self.tile_is_build:
+                        pygame.draw.rect(self.display_surface,
+                                         "red", tile, border_size)
+                    else:
+                        pygame.draw.rect(self.display_surface,
+                                         "white", tile, border_size)
 
     def wave_management(self, wave_data):
         now = pygame.time.get_ticks()
@@ -289,6 +291,25 @@ class Level:
 
     def turret_detection(self):
         for turret in self.turret_sprites:
+            now = pygame.time.get_ticks()
+            if turret.upgrade_signal and now - self.last_time >= 200 and turret.level <= 3:
+                self.last_time = now
+                if turret.level == turret.level_max:
+                    turret.level = 3
+                    turret.damage = self.turret_data['levels_stats'][turret.level]['damage']
+                    turret.range_size = self.turret_data['levels_stats'][turret.level]['range_size']
+                    turret.range_ratio = self.turret_data['levels_stats'][turret.level]['range_ratio']
+                else:
+                    turret.level += 1
+                    turret.price += self.turret_data['levels_price'][turret.level]
+                    turret.damage = self.turret_data['levels_stats'][turret.level]['damage']
+                    turret.range_size = self.turret_data['levels_stats'][turret.level]['range_size']
+                    turret.range_ratio = self.turret_data['levels_stats'][turret.level]['range_ratio']
+
+                    self.coins_amount -= self.turret_data['levels_price'][turret.level]
+                    self.change_coins(
+                        -self.turret_data['levels_price'][turret.level])
+
             for sbire in self.sbire_sprites:
                 if turret.shooting_range.collidepoint((sbire.pos[0], sbire.pos[1])):
                     now = pygame.time.get_ticks()
@@ -327,8 +348,10 @@ class Level:
         self.sbire_sprites.draw(self.display_surface)
 
         # turret
-        self.turret_sprites.update()
+        for turret in self.turret_sprites:
+            turret.draw_wall()
         self.turret_sprites.draw(self.display_surface)
+        self.turret_sprites.update()
 
         # Bullet
         self.bullet_sprites.update()
