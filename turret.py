@@ -191,6 +191,7 @@ class Turret(pygame.sprite.Sprite):
 
         if self.is_ui_show:
             print('Level >', self.level)
+            print('price >', self.price)
 
             # Display components
             self.display_surface.blit(container_surf, container_rect)
@@ -219,6 +220,9 @@ class Turret(pygame.sprite.Sprite):
                 if upgrade_button.rect.collidepoint(mouse_pos):
                     if pygame.mouse.get_pressed()[0]:
                         self.upgrade_signal = True
+
+                        self.shooting_range = pygame.Rect(
+                            self.rect.x - int(self.size * self.range_ratio), self.rect.y - int(self.size * self.range_ratio), self.range_size, self.range_size)
                     else:
                         self.upgrade_signal = False
             else:
@@ -232,6 +236,7 @@ class Turret(pygame.sprite.Sprite):
         self.animate()
         self.get_status()
         self.show_turret_ui()
+        self.rotate()
 
         # Update level image
         self.level_image = pygame.image.load(

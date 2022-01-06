@@ -1,7 +1,11 @@
-from os import walk
 import pygame
+from os import walk
 from csv import reader
 from settings import tile_size
+
+
+def play_sound(path):
+    pygame.mixer.Sound(path).play()
 
 
 def import_folder(path, tile_size=64):

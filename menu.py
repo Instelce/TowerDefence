@@ -2,6 +2,8 @@ import pygame
 import sys
 
 from settings import *
+from game_data import sounds_path
+from support import play_sound
 
 pygame.font.init()
 
@@ -106,6 +108,7 @@ class Button:
 
             if pygame.mouse.get_pressed()[0]:
                 print('CLICK', self.text)
+                play_sound(sounds_path['select'])
                 if self.callback != None:
                     self.callback()
         else:

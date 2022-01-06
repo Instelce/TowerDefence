@@ -9,9 +9,17 @@ level_0 = {
     'road': 'levels/0/level_0_road.csv',
 }
 
-
 levels = {
     0: level_0
+}
+
+
+# Sounds
+sounds_path = {
+    'hit': 'sound/hit.wav',
+    'select': 'sound/select.wav',
+    'shoot': 'sound/shoot.wav',
+    'turret_spawn': 'sound/turret_spawn.wav',
 }
 
 # Turrets
@@ -20,6 +28,7 @@ turrets_levels = {
     2: 'graphics/turret/level/2.png',
     3: 'graphics/turret/level/3.png',
 }
+
 turrets_data = {
     '01': {
         'category': 1,

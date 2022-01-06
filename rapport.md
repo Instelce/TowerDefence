@@ -6,6 +6,7 @@ Les fonctionalités ajoutées
  - Position voulu des tourelles
  - Animations des sbires et des tourelles
  - Plusieurs tourelles disponibles
+ - Possibilité d'améliorer les tourelles
 
 Les fonctionalités ou j'ai galéré
  - La gestion des fichiers

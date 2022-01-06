@@ -51,6 +51,8 @@ class UI:
 
         self.horizontal_center = self.topbar_size[1] / 2
 
+        self.last_time = pygame.time.get_ticks()
+
     def topbar(self):
         pause_button = Button(self.display_surface,
                               self.draw_resume_window,
@@ -109,6 +111,14 @@ class UI:
 
     def no_callback(self):
         return None
+
+    def draw_wave_timer(self, wave_duration):
+        timer_duration = pygame.time.set_timer(
+            pygame.USEREVENT, wave_duration * 100)
+
+        timer_surf = self.font.render(str(wave_duration), False, 'white')
+        timer_rect = timer_surf.get_rect(
+            center=(screen_height - 200, self.horizontal_center))
 
     def show(self):
         self.display_surface.blit(self.topbar_surf, (0, 0))

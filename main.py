@@ -15,7 +15,7 @@ class Game:
         self.life = 5
         self.turret_selected = 1
 
-        self.status = '-menu'
+        self.status = 'menu'
         self.start_menu = Menu(screen,
                                "Tower Defence",
                                [
@@ -93,13 +93,19 @@ class Game:
             self.ui.show_coins(self.coins_amount)
             self.ui.show_life(self.life)
             self.ui.draw_turret_panel(self.change_turret_selected)
+            # self.ui.draw_wave_timer(20)
 
             if self.life <= 0:
                 self.create_game_over_menu()
 
 
 # Setup level
+pygame.mixer.pre_init(44100, -16, 2, 512)
 pygame.init()
+
+# pygame.mixer.music.load('sound/music.wav')
+# pygame.mixer.music.play(-1)
+
 screen = pygame.display.set_mode(
     (screen_width, screen_height), pygame.SCALED + pygame.RESIZABLE)
 pygame.display.set_caption("Tower Defence")
